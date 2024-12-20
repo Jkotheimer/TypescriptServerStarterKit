@@ -1,0 +1,62 @@
+{
+    "name": "typescript-server-starter-kit",
+    "description": "Typescript Server Starter kit",
+    "version": "1.0.0",
+    "author": "Jack Kotheimer <jkotheimer9@gmail.com>",
+    "license": "MIT",
+    "type": "module",
+    "main": "index.js",
+    "homepage": "https://github.com/jkotheimer/typescript-server-starter-kit#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jkotheimer/typescript-server-starter-kit.git"
+    },
+    "bugs": {
+        "url": "https://github.com/jkotheimer/typescript-server-starter-kit/issues"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "gulp",
+        "start": "npm run build && node dist/index.js"
+    },
+    "_moduleDirectories": [
+        "src"
+    ],
+    "_moduleAliases": {
+        "@api": [
+            "api"
+        ],
+        "@database": [
+            "database"
+        ],
+        "@models": [
+            "models"
+        ],
+        "@services": [
+            "services"
+        ],
+        "@utils": [
+            "utils"
+        ],
+        "@constants": [
+            "constants"
+        ]
+    },
+    "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+        "@types/body-parser": "^1.19.5",
+        "@types/express": "^5.0.0",
+        "@types/module-alias": "^2.0.4",
+        "gulp": "^5.0.0",
+        "gulp-replace": "^1.1.4",
+        "gulp-typescript": "^6.0.0-alpha.1",
+        "typescript": "^5.7.2"
+    },
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.3",
+        "express": "^4.21.2",
+        "module-alias": "^2.2.3",
+        "uuid": "^11.0.3"
+    }
+}
