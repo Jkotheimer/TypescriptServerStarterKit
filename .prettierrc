@@ -4,7 +4,7 @@
     "singleQuote": true,
     "bracketSpacing": true,
     "arrowParens": "always",
-    "trailingComma": "es5",
+    "trailingComma": "none",
     "endOfLine": "lf",
     "printWidth": 180,
     "tabWidth": 4
