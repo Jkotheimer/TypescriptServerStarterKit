@@ -9,6 +9,7 @@ export default class Database {
         return new Promise<Array<Record<string, any>>>((resolve, reject) => {
             Database.connection.query(query, (error, results, fields) => {
                 console.log(fields);
+                console.log(results);
                 if (error) {
                     reject(error);
                 } else {
