@@ -17,7 +17,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "gulp",
-        "start": "npm run build && node dist/index.js"
+        "start": "npm run build && node dist/index.js --env-file=.env"
     },
     "_moduleDirectories": [
         "src"
@@ -48,6 +48,7 @@
         "@types/express": "^5.0.0",
         "@types/module-alias": "^2.0.4",
         "gulp": "^5.0.0",
+        "gulp-environments": "^1.0.1",
         "gulp-replace": "^1.1.4",
         "gulp-typescript": "^6.0.0-alpha.1",
         "typescript": "^5.7.2"
