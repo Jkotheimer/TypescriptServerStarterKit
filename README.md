@@ -16,10 +16,18 @@ To build and run the project in one command:
 npm start
 ```
 
-To just build the project (see [Build Process](#build-process)):
+### Troubleshooting
+
+Here are some workarounds and fixes for common issues:
+
+#### Permission Denied
+
+When trying to run the server for the first time, you may encounter this error: `Error: listen EACCES: permission denied 0.0.0.0:443`.
+
+To resolve this error, run the following command:
 
 ```sh
-npm run build
+sudo setcap 'cap_net_bind_service=+ep' $(which node)
 ```
 
 ## Build Process
