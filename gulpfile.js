@@ -27,8 +27,8 @@ gulp.task('fix-imports', () => {
     // $1: Import variable name (keep)
     // $2: Path alias (replace)
     // $3: Relative path (keep)
-    const variableImportRegex = new RegExp(`import (.*?) from '@(${pathAliasesRegexSearch})(.*?)?'`);
-    const staticImportRegex = new RegExp(`import '@(${pathAliasesRegexSearch})(.*?)?'`);
+    const variableImportRegex = new RegExp(`import (.*?) from '@(${pathAliasesRegexSearch})(.*?)?'`, 'g');
+    const staticImportRegex = new RegExp(`import '@(${pathAliasesRegexSearch})(.*?)?'`, 'g');
 
     /**
      * @description Modify the file path to have a .js file ending. Replaces .ts with .js, else appends .js
