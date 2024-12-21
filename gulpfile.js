@@ -1,13 +1,45 @@
-import gulp from 'gulp';
-import ts from 'gulp-typescript';
-import replace from 'gulp-replace';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import environments from 'gulp-environments';
+import replace from 'gulp-replace';
+import ts from 'gulp-typescript';
+import cp from 'child_process';
+import gulp from 'gulp';
+import path from 'path';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const OUT_DIR = __dirname + '/dist';
+
+const environment = environments.development ? 'dev' : 'production';
+
+/**
+ * @typedef {Object} ExecResult
+ * @property {string} stdout
+ * @property {string} stderr
+ */
+
+/**
+ * @description Execute a shell command
+ * @param {string} cmd Command to execute in the shell
+ * @returns {Promise<ExecResult>}
+ */
+async function exec(cmd) {
+    return new Promise((resolve, reject) => {
+        cp.exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve({
+                    stdout,
+                    stderr
+                });
+            }
+        });
+    });
+}
 
 // TypeScript project configuration
 const tsProject = ts.createProject('tsconfig.json');
@@ -17,7 +49,20 @@ gulp.task('compile', () => {
     return tsProject.src().pipe(tsProject()).js.pipe(gulp.dest('dist'));
 });
 
-// Task to update import paths
+gulp.task('port-environment-variables', async () => {
+    const dotenvFileName = `.env.${environment}`;
+    const dotenvFilePath = path.resolve(__dirname, dotenvFileName);
+
+    // If the dotenv file does not exist, run the configure script to prompt the user for environment vars
+    if (!fs.existsSync(dotenvFilePath)) {
+        const configureScript = path.resolve(__dirname, 'bin/configure.sh');
+        await exec(`${configureScript} --environment ${environment}`);
+    }
+
+    gulp.src(dotenvFilePath).pipe(gulp.dest(OUT_DIR));
+});
+
+// Task to change all import aliases to relative paths
 gulp.task('fix-imports', () => {
     const pathAliases = Object.keys(tsProject.options.paths);
 
