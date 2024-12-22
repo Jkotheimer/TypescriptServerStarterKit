@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import configure from './bin/configure.js';
 import environments from 'gulp-environments';
 import replace from 'gulp-replace';
 import ts from 'gulp-typescript';
-import cp from 'child_process';
 import gulp from 'gulp';
 import path from 'path';
 import fs from 'fs';
@@ -14,32 +14,6 @@ const __dirname = dirname(__filename);
 const OUT_DIR = __dirname + '/dist';
 
 const environment = environments.development ? 'dev' : 'production';
-
-/**
- * @typedef {Object} ExecResult
- * @property {string} stdout
- * @property {string} stderr
- */
-
-/**
- * @description Execute a shell command
- * @param {string} cmd Command to execute in the shell
- * @returns {Promise<ExecResult>}
- */
-async function exec(cmd) {
-    return new Promise((resolve, reject) => {
-        cp.exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve({
-                    stdout,
-                    stderr
-                });
-            }
-        });
-    });
-}
 
 // TypeScript project configuration
 const tsProject = ts.createProject('tsconfig.json');
@@ -55,8 +29,7 @@ gulp.task('port-environment-variables', async () => {
 
     // If the dotenv file does not exist, run the configure script to prompt the user for environment vars
     if (!fs.existsSync(dotenvFilePath)) {
-        const configureScript = path.resolve(__dirname, 'bin/configure.sh');
-        await exec(`${configureScript} --environment ${environment}`);
+        await configure({ environment });
     }
 
     gulp.src(dotenvFilePath).pipe(gulp.dest(OUT_DIR));
@@ -156,4 +129,4 @@ gulp.task('fix-imports', () => {
 });
 
 // Default task: compile TypeScript and fix imports
-gulp.task('default', gulp.series('compile', 'fix-imports'));
+gulp.task('default', gulp.series('compile', 'port-environment-variables', 'fix-imports'));
