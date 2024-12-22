@@ -4,10 +4,28 @@ This repository hosts a boilerplate typescript project that can be used to start
 
 ## Getting Started
 
-First, install all dependencies:
+### Prerequisites
+
+First, install all node dependencies:
 
 ```sh
 npm install
+```
+
+A MySQL server is required for this application to function properly. MariaDB will also work just fine.
+
+### Starting the Server
+
+To build the project:
+
+```sh
+npm run build
+```
+
+To start the server using built data in the `dist/` folder
+
+```sh
+npm run server
 ```
 
 To build and run the project in one command:
