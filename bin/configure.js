@@ -257,7 +257,7 @@ async function main(args) {
 
 // If this script was executed directly from the cli, run the main function with cli args.
 // Otherwise, this script must have been imported by another script
-if (process.main === import.meta.main) {
+if (process.argv[1] === __filename) {
     console.log('Executing main');
     main(getCliArgs());
 }
