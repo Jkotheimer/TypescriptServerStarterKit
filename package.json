@@ -17,7 +17,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "gulp",
-        "start": "npm run build && node dist/index.js --env-file=.env"
+        "server": "node dist/index.js --env-file=.env",
+        "start": "npm run build && npm run server"
     },
     "_moduleDirectories": [
         "src"
@@ -47,6 +48,7 @@
         "@types/body-parser": "^1.19.5",
         "@types/express": "^5.0.0",
         "@types/module-alias": "^2.0.4",
+        "dotenv": "^16.4.7",
         "gulp": "^5.0.0",
         "gulp-environments": "^1.0.1",
         "gulp-replace": "^1.1.4",
@@ -54,12 +56,9 @@
         "typescript": "^5.7.2"
     },
     "dependencies": {
-        "@types/dotenv": "^6.1.1",
         "@types/mysql": "^2.15.26",
         "bcryptjs": "^2.4.3",
-        "dotenv": "^16.4.7",
         "express": "^4.21.2",
-        "module-alias": "^2.2.3",
         "mysql": "^2.18.1",
         "uuid": "^11.0.3"
     }
