@@ -3,7 +3,9 @@ import { dirname } from 'path';
 import configure from './bin/configure.js';
 import environments from 'gulp-environments';
 import replace from 'gulp-replace';
+import rename from 'gulp-rename';
 import ts from 'gulp-typescript';
+import clean from 'gulp-clean';
 import gulp from 'gulp';
 import path from 'path';
 import fs from 'fs';
@@ -18,11 +20,16 @@ const environment = environments.development ? 'dev' : 'production';
 // TypeScript project configuration
 const tsProject = ts.createProject('tsconfig.json');
 
+gulp.task('clean', () => {
+    return gulp.src(OUT_DIR, { read: false }).pipe(clean({ force: true }));
+});
+
 // Task to compile TypeScript
 gulp.task('compile', () => {
     return tsProject.src().pipe(tsProject()).js.pipe(gulp.dest('dist'));
 });
 
+// Task to ensure .env file exists for current environment, and copy .env file over to destination folder
 gulp.task('port-environment-variables', async () => {
     const dotenvFileName = `.env.${environment}`;
     const dotenvFilePath = path.resolve(__dirname, dotenvFileName);
@@ -32,7 +39,7 @@ gulp.task('port-environment-variables', async () => {
         await configure({ environment });
     }
 
-    gulp.src(dotenvFilePath).pipe(gulp.dest(OUT_DIR));
+    gulp.src(dotenvFilePath).pipe(rename('.env')).pipe(gulp.dest(OUT_DIR));
 });
 
 // Task to change all import aliases to relative paths
@@ -129,4 +136,4 @@ gulp.task('fix-imports', () => {
 });
 
 // Default task: compile TypeScript and fix imports
-gulp.task('default', gulp.series('compile', 'port-environment-variables', 'fix-imports'));
+gulp.task('default', gulp.series('clean', 'compile', 'port-environment-variables', 'fix-imports'));
