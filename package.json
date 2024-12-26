@@ -17,31 +17,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "gulp",
-        "server": "node dist/index.js --env-file=.env",
+        "server": "node dist/index.js --env-file=dist/.env",
         "start": "npm run build && npm run server"
-    },
-    "_moduleDirectories": [
-        "src"
-    ],
-    "_moduleAliases": {
-        "@api": [
-            "api"
-        ],
-        "@database": [
-            "database"
-        ],
-        "@models": [
-            "models"
-        ],
-        "@services": [
-            "services"
-        ],
-        "@utils": [
-            "utils"
-        ],
-        "@constants": [
-            "constants"
-        ]
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.6",
@@ -50,7 +27,9 @@
         "@types/module-alias": "^2.0.4",
         "dotenv": "^16.4.7",
         "gulp": "^5.0.0",
+        "gulp-clean": "^0.4.0",
         "gulp-environments": "^1.0.1",
+        "gulp-rename": "^2.0.0",
         "gulp-replace": "^1.1.4",
         "gulp-typescript": "^6.0.0-alpha.1",
         "typescript": "^5.7.2"
