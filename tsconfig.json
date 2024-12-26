@@ -27,6 +27,7 @@
             "@api/*": ["./api/*"],
             "@database/*": ["./database/*"],
             "@models/*": ["./models/*"],
+            "@security": ["./security/*"],
             "@services/*": ["./services/*"],
             "@utils/*": ["./utils/*"],
             "@constants": ["./constants/constants.ts"]
