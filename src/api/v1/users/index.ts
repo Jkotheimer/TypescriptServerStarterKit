@@ -1,4 +1,8 @@
 import express, { Request, Response } from 'express';
+import UserRepository from '@database/user-repository';
+import { DatabaseError, RequestError } from '@models/errors';
+import Constants from '@constants';
+import User from '@models/user';
 
 const router = express.Router();
 
@@ -7,11 +11,28 @@ const router = express.Router();
  * @param request
  * @param response
  */
-function getUserById(request: Request, response: Response) {
-    console.log(request.params);
-    response.status(200).json({
-        message: 'Success'
-    });
+async function getUserById(request: Request, response: Response) {
+    try {
+        console.log(request.params);
+        const user = await UserRepository.getUserDetails(request.params.id);
+
+        response.status(200).json({
+            message: 'Success',
+            data: user
+        });
+    } catch (error) {
+        console.error(error);
+        let errorMessage = error instanceof Error ? error.message : Constants.ERROR_MESSAGES.UNEXPECTED;
+        let statusCode = Constants.HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR;
+        if (error instanceof RequestError) {
+            if (error.statusCode) {
+                statusCode = error.statusCode;
+            }
+        }
+        response.status(statusCode).send({
+            message: errorMessage
+        });
+    }
 }
 
 /**
@@ -34,12 +55,30 @@ function getUserById(request: Request, response: Response) {
  * @param request
  * @param response
  */
-function createUser(request: Request, response: Response) {
-    const payload = request.body;
-    console.log('CREATE USER', payload);
-    response.status(201).json({
-        message: 'Success'
-    });
+async function createUser(request: Request, response: Response) {
+    try {
+        const inputUser: User = await User.from(request.body);
+        const createdUser = await UserRepository.createUser(inputUser);
+        response.status(201).json({
+            message: 'Success',
+            data: createdUser
+        });
+    } catch (error) {
+        console.error(error);
+        let errorMessage = error instanceof Error ? error.message : Constants.ERROR_MESSAGES.UNEXPECTED;
+        let statusCode = Constants.HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR;
+        if (error instanceof DatabaseError) {
+            errorMessage = error.message;
+            switch (error.code) {
+                case Constants.MYSQL_ERROR_CODES.ER_DUP_ENTRY:
+                    statusCode = Constants.HTTP_STATUS_CODES.CONFLICT;
+                    break;
+            }
+        }
+        response.status(statusCode).json({
+            message: errorMessage
+        });
+    }
 }
 
 /**
@@ -62,16 +101,86 @@ function createUser(request: Request, response: Response) {
  * @param request
  * @param response
  */
-function updateUser(request: Request, response: Response) {
-    const payload = request.body;
-    console.log('UPDATE USER', payload);
-    response.status(200).json({
-        message: 'Success'
-    });
+async function updateUser(request: Request, response: Response) {
+    try {
+        const inputUser = await User.from(request.body);
+        inputUser.Id = request.params.id;
+        console.log('UPDATE USER', inputUser);
+        const result = await UserRepository.updateUser(inputUser);
+
+        response.status(200).json({
+            message: 'Success',
+            data: result
+        });
+    } catch (error) {
+        console.error(error);
+        let errorMessage = error instanceof Error ? error.message : Constants.ERROR_MESSAGES.UNEXPECTED;
+        let statusCode = Constants.HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR;
+        if (error instanceof RequestError) {
+            if (error.statusCode) {
+                statusCode = error.statusCode;
+            }
+        }
+        response.status(statusCode).json({
+            error: errorMessage
+        });
+    }
+}
+
+async function deactivateUser(request: Request, response: Response) {
+    try {
+        const payload = request.body;
+        console.log('DELETE USER', payload, request.params);
+        const userId = request.params.id;
+        const result = await UserRepository.deactivateUser(userId);
+
+        response.status(200).json({
+            message: 'Success',
+            data: result
+        });
+    } catch (error) {
+        console.error(error);
+        let errorMessage = error instanceof Error ? error.message : Constants.ERROR_MESSAGES.UNEXPECTED;
+        let statusCode = Constants.HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR;
+        if (error instanceof RequestError) {
+            if (error.statusCode) {
+                statusCode = error.statusCode;
+            }
+        }
+        response.status(statusCode).json({
+            error: errorMessage
+        });
+    }
+}
+
+async function deleteUser(request: Request, response: Response) {
+    try {
+        const userId = request.params.id;
+        const result = await UserRepository.deleteUser(userId);
+
+        response.status(200).json({
+            message: 'Success',
+            data: result
+        });
+    } catch (error) {
+        console.error(error);
+        let errorMessage = error instanceof Error ? error.message : Constants.ERROR_MESSAGES.UNEXPECTED;
+        let statusCode = Constants.HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR;
+        if (error instanceof RequestError) {
+            if (error.statusCode) {
+                statusCode = error.statusCode;
+            }
+        }
+        response.status(statusCode).json({
+            error: errorMessage
+        });
+    }
 }
 
 router.post('/', createUser);
 router.get('/:id', getUserById);
 router.patch('/:id', updateUser);
+router.delete('/:id', deleteUser);
+router.post('/:id/deactivate', deactivateUser);
 
 export default router;
