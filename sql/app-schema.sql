@@ -8,7 +8,7 @@ DROP PROCEDURE IF EXISTS initialize_db;
 CREATE PROCEDURE initialize_db ()
 BEGIN
 
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
     END;
@@ -17,21 +17,22 @@ BEGIN
 
     CREATE TABLE Organization (
         Id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-        Name_x NVARCHAR(255) NOT NULL,
+        Name NVARCHAR(255) NOT NULL,
+        Email NVARCHAR(255) NOT NULL,
         PRIMARY KEY (Id)
     ) CHARACTER SET utf8mb4;
 
     CREATE TABLE Role (
         Id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-        Name_x NVARCHAR(255) NOT NULL,
+        Name NVARCHAR(255) NOT NULL,
         Label NVARCHAR(255) NOT NULL,
-        Type_x CHAR(1) NOT NULL,
+        Type CHAR(1) NOT NULL,
         PRIMARY KEY (Id)
     ) CHARACTER SET utf8mb4;
 
-    CREATE UNIQUE INDEX RoleName ON Role(Name_x);
+    CREATE UNIQUE INDEX RoleName ON Role(Name);
 
-    INSERT INTO Role (Name_x, Label, Type_x) VALUES
+    INSERT INTO Role (Name, Label, Type) VALUES
         ('OrganizationAdministrator', 'Organization Administrator', 'd'),
         ('RegisteredUser', 'Registered User', 'd'),
         ('GuestUser', 'Guest User', 'd');
@@ -42,7 +43,12 @@ BEGIN
         Phone NVARCHAR(32),
         FirstName NVARCHAR(255),
         LastName NVARCHAR(255),
-        Password_x NVARCHAR(8191),
+        Password NVARCHAR(8191) NOT NULL,
+        EmailVerified BOOLEAN DEFAULT FALSE,
+        IsActive BOOLEAN DEFAULT TRUE,
+        CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+        LastModifiedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+        ActivatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
         PRIMARY KEY (Id)
     ) CHARACTER SET utf8mb4;
 
@@ -51,7 +57,7 @@ BEGIN
     CREATE TABLE OrganizationUser (
         Organization INT UNSIGNED NOT NULL,
         User INT UNSIGNED NOT NULL,
-        Role_x INT UNSIGNED NOT NULL,
+        Role INT UNSIGNED NOT NULL,
         CONSTRAINT OrganizationUserOrganization
             FOREIGN KEY (Organization) REFERENCES Organization(Id)
             ON DELETE CASCADE
@@ -61,7 +67,7 @@ BEGIN
             ON DELETE CASCADE
             ON UPDATE RESTRICT,
         CONSTRAINT OrganizationUserRole
-            FOREIGN KEY (Role_x) REFERENCES Role(Id)
+            FOREIGN KEY (Role) REFERENCES Role(Id)
             ON DELETE CASCADE
             ON UPDATE RESTRICT,
         PRIMARY KEY (Organization, User)
