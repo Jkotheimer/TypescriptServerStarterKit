@@ -8,7 +8,7 @@ export default class Crypto {
         return Buffer.from(hash).toString(Constants.ENCODING_SCHEME);
     }
 
-    public static async verifyPassword(inputPassword: string, storedPasswordHash: string) {
+    public static async verifyPassword(inputPassword: string, storedPasswordHash: string): Promise<boolean> {
         return await bcrypt.compare(inputPassword, Buffer.from(storedPasswordHash, Constants.ENCODING_SCHEME).toString());
     }
 }
