@@ -27,17 +27,11 @@
             "@api/*": ["./api/*"],
             "@database/*": ["./database/*"],
             "@models/*": ["./models/*"],
-            "@security": ["./security/*"],
+            "@security/*": ["./security/*"],
             "@services/*": ["./services/*"],
             "@utils/*": ["./utils/*"],
             "@constants": ["./constants/constants.ts"]
-        },
-        "plugins": [
-            {
-                "name": "typescript-plugin-node",
-                "rootDir": "./src"
-            }
-        ]
+        }
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules", "dist"]
