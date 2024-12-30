@@ -3,7 +3,11 @@
  */
 import Express from 'express';
 import Constants from '@constants';
-import UsersAPI from '@api/v1/users/index';
+import v1 from '@api/v1/index';
+
+const versions: Record<string, Express.Router> = {
+    v1
+};
 
 // Initialize Express app
 const app = Express();
@@ -17,8 +21,7 @@ app.use(
     })
 );
 
-// Define all APIs
-app.use('/users', UsersAPI);
+Object.keys(versions).forEach((vx) => app.use(`/${vx}`, versions[vx]));
 
 // Start the server
 app.listen(Constants.PORT, () => {

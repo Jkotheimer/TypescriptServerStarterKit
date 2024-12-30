@@ -24,6 +24,7 @@ export default class Constants {
     };
 
     public static readonly ERROR_CODES = class {
+        public static readonly INVALID_API_VERSION = 'INVALID_API_VERSION';
         public static readonly UNAUTHORIZED = 'UNAUTHORIZED';
         public static readonly BAD_REQUEST = 'BAD_REQUEST';
         public static readonly NOT_FOUND = 'NOT_FOUND';
@@ -33,6 +34,7 @@ export default class Constants {
     };
 
     public static readonly ERROR_MESSAGES = class {
+        public static readonly INVALID_API_VERSION = 'Invalid API Version: {0}.';
         public static readonly UNEXPECTED = 'An unexpected error occurred.';
         public static readonly FIELD_DOES_NOT_EXIST = 'The field "{0}" does not exist on the "{1}" table.';
         public static readonly INVALID_FIELDS = 'Invalid field{0}: [ {1} ]';
