@@ -1,6 +1,6 @@
 import Constants from '@constants';
 import StringUtils from '@utils/string';
-import GlobalDescribe, { TableDescribe } from '@models/describe';
+import GlobalDescribe, { TableDescribe } from '@database/describe';
 
 export default class BaseModel {
     public Id?: string;
@@ -34,10 +34,7 @@ export default class BaseModel {
      * @returns {Promise<TableDescribe>}
      */
     public async getDescribe(): Promise<TableDescribe> {
-        if (!GlobalDescribe[this.constructor.name]) {
-            GlobalDescribe[this.constructor.name] = await TableDescribe.fetch(this.constructor.name);
-        }
-        return GlobalDescribe[this.constructor.name];
+        return GlobalDescribe.get(this.constructor.name);
     }
 
     /**
@@ -45,10 +42,7 @@ export default class BaseModel {
      * @returns {Promise<TableDescribe>}
      */
     public static async getDescribe(): Promise<TableDescribe> {
-        if (!GlobalDescribe[this.name]) {
-            GlobalDescribe[this.name] = await TableDescribe.fetch(this.name);
-        }
-        return GlobalDescribe[this.name];
+        return GlobalDescribe.get(this.name);
     }
 
     /**
