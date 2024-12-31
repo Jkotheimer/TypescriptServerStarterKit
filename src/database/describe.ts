@@ -10,6 +10,7 @@ export default class GlobalDescribe {
      */
     public static async get(table: string): Promise<TableDescribe> {
         if (table in this.cache) {
+            console.log('using cached describe for', table);
             return this.cache[table];
         }
         const fieldDescribes = await Database.query('DESCRIBE ??;', [table]);

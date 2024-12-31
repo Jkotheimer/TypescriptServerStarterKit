@@ -13,8 +13,7 @@ const router = express.Router();
  */
 async function login(request: Request, response: Response) {
     try {
-        console.log(request.params);
-        const payload = request.body;
+        const payload = await User.from(request.body);
         const user = await UserRepository.getUserForAuthentication(request.params.id);
 
         response.status(200).json({

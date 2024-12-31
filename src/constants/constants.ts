@@ -1,3 +1,4 @@
+//TODO Look into exporting namespace instead of class
 export default class Constants {
     public static readonly PORT: number = 8080;
     public static readonly ENCODING_SCHEME = 'base64url';
