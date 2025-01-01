@@ -15,6 +15,10 @@ const __dirname = dirname(__filename);
 
 const OUT_DIR = __dirname + '/dist';
 
+if (!fs.existsSync(OUT_DIR)) {
+	fs.mkdirSync(OUT_DIR);
+}
+
 const environment = environments.development ? 'dev' : 'production';
 
 // TypeScript project configuration
