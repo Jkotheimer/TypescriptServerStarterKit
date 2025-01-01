@@ -82,8 +82,6 @@ BEGIN
         PRIMARY KEY (Id)
     ) CHARACTER SET utf8mb4;
 
-    FLUSH USER_VARIABLES;
-
     COMMIT;
 END //
 
