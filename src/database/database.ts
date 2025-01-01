@@ -1,23 +1,12 @@
 import { DatabaseError } from '@models/errors';
 import BaseModel from '@models/base';
-import mysql from 'mysql';
+import mysql from 'mysql2';
 import Constants from '@constants';
 
 export class TransactionError extends Error {
-    transactionInitError?: mysql.MysqlError;
-    commitError?: mysql.MysqlError;
-    rollbackError?: mysql.MysqlError;
-
-    constructor(error: Error | string) {
-        if (typeof error === 'string') {
-            super(error);
-        } else {
-            super(error.message);
-            Object.getOwnPropertyNames(error).forEach((prop) => {
-                this[prop as keyof Error] = error[prop as keyof Error]!;
-            });
-        }
-    }
+    transactionInitError?: mysql.QueryError;
+    commitError?: mysql.QueryError;
+    rollbackError?: mysql.QueryError;
 }
 
 export default class Database {
@@ -27,6 +16,11 @@ export default class Database {
      * Static initializer to initialize database connection
      */
     static {
+        console.log('Initializing database connection');
+        console.log(process.env.MYSQL_HOST);
+        console.log(process.env.MYSQL_DATABASE);
+        console.log(process.env.MYSQL_USER);
+        console.log(process.env.MYSQL_PASSWORD);
         Database.connection = mysql.createConnection({
             host: process.env.MYSQL_HOST,
             database: process.env.MYSQL_DATABASE,
@@ -42,9 +36,9 @@ export default class Database {
      */
     public static async wrap(fn: Function | Promise<any>): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            Database.connection.beginTransaction(async (transactionInitError: mysql.MysqlError) => {
+            Database.connection.beginTransaction(async (transactionInitError: mysql.QueryError | null) => {
                 if (transactionInitError) {
-                    const error = new TransactionError(transactionInitError);
+                    const error = new TransactionError();
                     error.transactionInitError = transactionInitError;
                     reject(error);
                 }
@@ -57,7 +51,8 @@ export default class Database {
                     }
                     Database.connection.commit((commitError) => {
                         if (commitError) {
-                            const error = new TransactionError(commitError);
+                            const error = new TransactionError();
+                            error.commitError = commitError;
                             Database.connection.rollback((rollbackError) => {
                                 if (rollbackError) {
                                     error.rollbackError = rollbackError;
@@ -68,10 +63,16 @@ export default class Database {
                             resolve(result);
                         }
                     });
-                } catch (error) {
+                } catch (exception) {
+                        const error = new TransactionError();
+                        if (exception instanceof Error) {
+                            error.message = exception.message;
+                            error.stack = exception.stack;
+                        }
                     Database.connection.rollback((rollbackError) => {
-                        const error = new TransactionError(rollbackError);
-                        error.rollbackError = rollbackError;
+                        if (rollbackError) {
+                            error.rollbackError = rollbackError;
+                        }
                         reject(error);
                     });
                 }
@@ -88,9 +89,9 @@ export default class Database {
         return new Promise<Array<Record<string, any>>>((resolve, reject) => {
             const formattedQuery = Database.connection.format(query, variables);
             console.log('Formatted Query:', formattedQuery);
-            Database.connection.query(formattedQuery, (error, result) => {
-                if (error) {
-                    reject(new DatabaseError(error));
+            Database.connection.query(formattedQuery, (queryError: mysql.QueryError, result: mysql.RowDataPacket[]) => {
+                if (queryError) {
+                    reject(new DatabaseError(queryError));
                 } else {
                     console.log(result);
                     resolve(result);
@@ -105,7 +106,7 @@ export default class Database {
             const recordClone = await record.createQuerySafeClone();
             const query = mysql.format('INSERT INTO ?? SET ?;', [table, recordClone]);
             console.log(query);
-            Database.connection.query(query, (insertError: mysql.MysqlError, result: mysql.OkPacket) => {
+            Database.connection.query(query, (insertError: mysql.QueryError, result: mysql.OkPacket) => {
                 if (insertError) {
                     reject(new DatabaseError(insertError));
                 } else {
@@ -124,7 +125,7 @@ export default class Database {
         const query = mysql.format('UPDATE ?? SET ? WHERE Id = ?', [table, recordClone, record.Id]);
         console.log(query);
         return new Promise<mysql.OkPacket>((resolve, reject) => {
-            Database.connection.query(query, (updateError: mysql.MysqlError, result: mysql.OkPacket) => {
+            Database.connection.query(query, (updateError: mysql.QueryError, result: mysql.OkPacket) => {
                 if (updateError) {
                     reject(new DatabaseError(updateError));
                 } else {
@@ -144,7 +145,7 @@ export default class Database {
         const query = mysql.format('DELETE FROM ?? WHERE Id = ?;', [table, id]);
         console.log(query);
         return new Promise<mysql.OkPacket>((resolve, reject) => {
-            Database.connection.query(query, (deleteError: mysql.MysqlError, result: mysql.OkPacket) => {
+            Database.connection.query(query, (deleteError: mysql.QueryError, result: mysql.OkPacket) => {
                 if (deleteError) {
                     reject(new DatabaseError(deleteError));
                 } else {

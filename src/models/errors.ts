@@ -1,4 +1,4 @@
-import { MysqlError } from 'mysql';
+import mysql from 'mysql2';
 import Constants from '@constants';
 
 export class RequestError extends Error {
@@ -13,32 +13,29 @@ export class RequestError extends Error {
     }
 }
 
-export class DatabaseError implements MysqlError {
+export class DatabaseError implements mysql.QueryError {
     code: string;
-    errno: number;
-    sqlMessage?: string | undefined;
+    errno?: number;
+    syscall?: string | undefined;
     sqlState?: string | undefined;
-    sql?: string | undefined;
     stack?: string | undefined;
     fatal: boolean;
     name: string;
     message: string;
 
-    constructor(error: string | MysqlError) {
+    constructor(error: string | mysql.QueryError) {
         if (typeof error === 'string') {
             this.message = error;
             this.code = Constants.MYSQL_ERROR_CODES.ER_UNKNOWN;
             this.errno = -1;
-            this.sqlMessage = error;
             this.fatal = true;
             this.name = 'DatabaseError';
         } else {
             this.message = error.message;
             this.code = error.code;
             this.errno = error.errno;
-            this.sqlMessage = error.sqlMessage;
+            this.syscall = error.syscall;
             this.sqlState = error.sqlState;
-            this.sql = error.sql;
             this.stack = error.stack;
             this.fatal = error.fatal;
             this.name = error.name;
