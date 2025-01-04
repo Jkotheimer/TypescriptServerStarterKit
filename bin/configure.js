@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import readline from 'readline';
 import dotenv from 'dotenv';
-import stream from 'stream';
 import path from 'path';
 import url from 'url';
 import fs from 'fs';
