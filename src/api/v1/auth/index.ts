@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
-import UserRepository from '@database/user-repository';
+import UserRepository from '@database/repositories/user';
 import { DatabaseError, RequestError } from '@models/errors';
 import Constants from '@constants';
 import User from '@models/user';
+import Auth from '@security/auth';
 
 const router = express.Router();
 
@@ -13,8 +14,9 @@ const router = express.Router();
  */
 async function login(request: Request, response: Response) {
     try {
-        const payload = await User.from(request.body);
-        const user = await UserRepository.getUserForAuthentication(request.params.id);
+        const user = await User.from(request.body);
+        Auth.validateUserCredentials(user.Email, user.Password)
+
 
         response.status(200).json({
             message: 'Success',

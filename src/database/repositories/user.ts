@@ -13,6 +13,12 @@ const REQUIRED_CREATE_FIELDS = ['Email', 'Password'];
 const UPDATEABLE_FIELDS = ['FirstName', 'LastName', 'Email', 'Phone'];
 
 export default class UserRepository {
+
+    /**
+     * @description Get a user record for authentication purposes
+     * @param email User email to match on
+     * @returns User object with Id, Email, and Password fields
+     */
     public static async getUserForAuthentication(email: string): Promise<User> {
         email = Database.connection.escape(email);
         const userRecords = await Database.query(`SELECT Id, Email, Password FROM User WHERE Email = '${email}' LIMIT 1;`);
@@ -25,6 +31,11 @@ export default class UserRepository {
         return user;
     }
 
+    /**
+     * @description Get a user record by Id with only client-visible fields
+     * @param id User Id
+     * @returns User object with client-visible fields
+     */
     public static async getUserDetails(id: string): Promise<User> {
         const userRecords = await Database.query(`SELECT ${CLIENT_VISIBLE_FIELDS.join(',')} FROM User WHERE Id = ? LIMIT 1;`, [id]);
         if (!userRecords.length) {
@@ -37,6 +48,11 @@ export default class UserRepository {
         return user;
     }
 
+    /**
+     * @description Create a new user record
+     * @param user User object to create
+     * @returns The created user object with a unique Id
+     */
     public static async createUser(user: User): Promise<User> {
         // Ensure all provided fields are createable and all required fields are present
         const invalidFields = [];
@@ -84,6 +100,11 @@ export default class UserRepository {
         }
     }
 
+    /**
+     * @description Update a user record
+     * @param user User record to update. Must include Id field. Cannot include fields that are not updateable.
+     * @returns The updated user record
+     */
     public static async updateUser(user: User): Promise<User> {
         const invalidFields = [];
         for (const field of Object.keys(user).filter((f) => f !== 'Id')) {

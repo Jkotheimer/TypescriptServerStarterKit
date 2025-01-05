@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import UserRepository from '@database/user-repository';
+import UserRepository from '@database/repositories/user';
 import { DatabaseError, RequestError } from '@models/errors';
 import Constants from '@constants';
 import User from '@models/user';
