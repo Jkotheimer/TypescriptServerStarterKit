@@ -8,7 +8,7 @@ import AuthApiV1 from '@api/v1/auth/index';
 
 const router = express.Router();
 
-router.use('/users', UsersApiV1);
+router.use('/user', UsersApiV1);
 router.use('/auth', AuthApiV1);
 
 export default router;

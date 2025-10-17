@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
+import { DatabaseError, RequestError } from '@database/models/errors';
 import UserRepository from '@database/repositories/user';
-import { DatabaseError, RequestError } from '@models/errors';
 import Constants from '@constants';
-import User from '@models/user';
+import User from '@database/models/user';
 
 const router = express.Router();
 
@@ -57,11 +57,15 @@ async function getUserById(request: Request, response: Response) {
  */
 async function createUser(request: Request, response: Response) {
     try {
+        console.log(request.session.id);
+        if (!request.session.id) {
+            throw new RequestError(Constants.ERROR_CODES.BAD_REQUEST, Constants.ERROR_MESSAGES.SESSION_NOT_FOUND);
+        }
         const inputUser: User = await User.from(request.body);
-        const createdUser = await UserRepository.createUser(inputUser);
+        //const createdUser = await UserRepository.createUser(inputUser);
         response.status(201).json({
             message: 'Success',
-            data: createdUser
+            data: inputUser
         });
     } catch (error) {
         console.error(error);
@@ -156,6 +160,10 @@ async function deactivateUser(request: Request, response: Response) {
 async function deleteUser(request: Request, response: Response) {
     try {
         const userId = request.params.id;
+        const user = await UserRepository.getUserDetails(userId);
+        if (!user) {
+            throw new RequestError(Constants.ERROR_CODES.NOT_FOUND, `User with Id ${userId} not found.`);
+        }
         const result = await UserRepository.deleteUser(userId);
 
         response.status(200).json({

@@ -2,6 +2,7 @@
  * This file defines all exposed api endpoints
  */
 import Express from 'express';
+import Session from 'express-session';
 import Constants from '@constants';
 import v1 from '@api/v1/index';
 
@@ -21,7 +22,23 @@ app.use(
     })
 );
 
-Object.keys(versions).forEach((vx) => app.use(`/${vx}`, versions[vx]));
+app.use(
+    Session({
+        secret: 'abc123',
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+            path: '/',
+            maxAge: 120000,
+            secure: false
+        }
+    })
+);
+
+Object.keys(versions).forEach((vx) => {
+    console.log(`Using ${vx}: `, versions[vx]);
+    app.use(`/${vx}`, versions[vx]);
+});
 
 // Start the server
 app.listen(Constants.PORT, () => {

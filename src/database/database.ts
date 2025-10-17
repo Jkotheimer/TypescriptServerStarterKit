@@ -1,7 +1,14 @@
-import { DatabaseError } from '@models/errors';
-import BaseModel from '@models/base';
+import { DatabaseError } from '@database/models/errors';
+import BaseModel from '@database/models/base';
 import mysql from 'mysql2';
 import Constants from '@constants';
+
+export enum BaseAction {
+    CREATE = 'CREATE',
+    READ = 'READ',
+    UPDATE = 'UPDATE',
+    DELETE = 'DELETE'
+}
 
 export class TransactionError extends Error {
     transactionInitError?: mysql.QueryError;
@@ -16,11 +23,6 @@ export default class Database {
      * Static initializer to initialize database connection
      */
     static {
-        console.log('Initializing database connection');
-        console.log(process.env.MYSQL_HOST);
-        console.log(process.env.MYSQL_DATABASE);
-        console.log(process.env.MYSQL_USER);
-        console.log(process.env.MYSQL_PASSWORD);
         Database.connection = mysql.createConnection({
             host: process.env.MYSQL_HOST,
             database: process.env.MYSQL_DATABASE,
@@ -64,11 +66,11 @@ export default class Database {
                         }
                     });
                 } catch (exception) {
-                        const error = new TransactionError();
-                        if (exception instanceof Error) {
-                            error.message = exception.message;
-                            error.stack = exception.stack;
-                        }
+                    const error = new TransactionError();
+                    if (exception instanceof Error) {
+                        error.message = exception.message;
+                        error.stack = exception.stack;
+                    }
                     Database.connection.rollback((rollbackError) => {
                         if (rollbackError) {
                             error.rollbackError = rollbackError;
@@ -93,20 +95,19 @@ export default class Database {
                 if (queryError) {
                     reject(new DatabaseError(queryError));
                 } else {
-                    console.log(result);
                     resolve(result);
                 }
             });
         });
     }
 
-    public static async insert(record: BaseModel): Promise<mysql.OkPacket> {
-        return new Promise<mysql.OkPacket>(async (resolve, reject) => {
+    public static async insert(record: BaseModel): Promise<mysql.QueryResult> {
+        return new Promise<mysql.QueryResult>(async (resolve, reject) => {
             const table = record.constructor.name;
             const recordClone = await record.createQuerySafeClone();
             const query = mysql.format('INSERT INTO ?? SET ?;', [table, recordClone]);
             console.log(query);
-            Database.connection.query(query, (insertError: mysql.QueryError, result: mysql.OkPacket) => {
+            Database.connection.query(query, (insertError: mysql.QueryError, result: mysql.QueryResult) => {
                 if (insertError) {
                     reject(new DatabaseError(insertError));
                 } else {

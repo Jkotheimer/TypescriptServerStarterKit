@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import readline from 'readline';
+import cp from 'child_process';
 import dotenv from 'dotenv';
 import path from 'path';
 import url from 'url';
@@ -53,6 +54,11 @@ const Environment = Object.freeze({
  */
 const ENVIRONMENT_VARIABLE_CONFIGS = Object.freeze([
     {
+        name: 'SERVER_HOSTNAME',
+        label: 'Server Hostname',
+        default: 'localhost'
+    },
+    {
         name: 'MYSQL_HOST',
         label: 'MySQL Host',
         default: 'localhost'
@@ -101,6 +107,23 @@ function printHelp() {
     console.log('Configure environment variables for this project.\n');
     console.log(`-e, --environment : Specify the environment you will be configuring. Options are [${ENVIRONMENTS.join(', ')}]. Default is dev`);
     console.log('-h, --help : Show this help dialog\n');
+}
+
+/**
+ * @description When the program is interrupted, print custom information about the state that is being left behind
+ * @param {string} draftDotenvFilePath File path to .env.draft
+ * @returns {function} Reference to exit handler to be used to remove the event handler from the process
+ */
+function trapInterrupt(draftDotenvFilePath) {
+    function onExit(code) {
+        console.log(`\nConfiguration interrupted. Exiting gracefully with status code ${code}...`);
+        if (fs.existsSync(draftDotenvFilePath)) {
+            console.log(`\nDraft saved to ${draftDotenvFilePath}\n`);
+        }
+        process.exit(code);
+    }
+    process.on('exit', onExit);
+    return onExit;
 }
 
 /**
@@ -186,16 +209,34 @@ async function captureEnvironmentVariable(config, defaultValue) {
     });
 }
 
-function trapInterrupt(draftDotenvFilePath) {
-    function onExit(code) {
-        console.log(`\nConfiguration interrupted. Exiting gracefully with status code ${code}...`);
-        if (fs.existsSync(draftDotenvFilePath)) {
-            console.log(`\nDraft saved to ${draftDotenvFilePath}\n`);
-        }
-        process.exit(code);
+async function exec(cmd) {
+    return new Promise((resolve, reject) => {
+        console.log('Executing:', cmd);
+        cp.exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                reject({ error, stdout, stderr });
+            } else {
+                resolve({ stdout, stderr });
+            }
+        });
+    });
+}
+
+/**
+ * @returns {Promise<Record<string, string>>} Key file paths indexed by environment variable name
+ */
+async function generateKeys() {
+    const JWT_PRIVATE_KEY_FILE = path.resolve('config/.ssl/jwt-rsa.pem');
+    const JWT_PUBLIC_KEY_FILE = path.resolve('config/.ssl/jwt-rsa-public.pem');
+    if (!fs.existsSync(JWT_PRIVATE_KEY_FILE)) {
+        await exec(`openssl genrsa -out ${JWT_PRIVATE_KEY_FILE} 2048`);
+        await exec(`openssl rsa -in ${JWT_PRIVATE_KEY_FILE} -outform PEM -pubout -out ${JWT_PUBLIC_KEY_FILE}`);
     }
-    process.on('exit', onExit);
-    return onExit;
+
+    return {
+        JWT_PRIVATE_KEY_FILE,
+        JWT_PUBLIC_KEY_FILE
+    };
 }
 
 /**
@@ -248,6 +289,12 @@ async function main(args) {
         }
         draftDotenv[config.name] = value;
     }
+
+    const keyFileEnvironmentVariables = await generateKeys();
+    Object.keys(keyFileEnvironmentVariables).forEach((envVar) => {
+        const keyFilePath = keyFileEnvironmentVariables[envVar];
+        fs.appendFileSync(draftDotenvFilePath, `${envVar}='${keyFilePath}'\n`, { encoding: 'utf-8' });
+    });
 
     fs.writeFileSync(dotenvFilePath, fs.readFileSync(draftDotenvFilePath));
     fs.rmSync(draftDotenvFilePath);

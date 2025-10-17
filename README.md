@@ -75,3 +75,8 @@ This starter kit uses [expressjs](https://expressjs.com/en/4x/api.html). All exp
 This starter it uses [mysql](https://www.npmjs.com/package/mysql) for the default database connection. If you need to use a different database, feel free to fork this project and change it up.
 
 The database modules in this project use the repository design pattern. The idea is that each database module exposes abstract methods that allow different services to interact with one or many tables in the database. These methods should handle all pre and post processing, like building queries and resolving joins.
+
+## Backlog
+
+-   Create a script to generate keys for the following security uses:
+    -   SSL Cert

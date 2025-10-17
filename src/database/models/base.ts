@@ -10,7 +10,7 @@ export default class BaseModel {
      * @param record Record input to generate model from
      * @returns {Promise<BaseModel>} Resolves the model instance
      */
-    public static async from(record: Record<string, any>): Promise<BaseModel> {
+    protected static async from(record: Record<string, any>): Promise<BaseModel> {
         const tableDescribe = await this.getDescribe();
         const model = new this();
         Object.keys(record).forEach((key) => {

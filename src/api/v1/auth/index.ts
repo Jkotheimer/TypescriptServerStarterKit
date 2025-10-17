@@ -1,9 +1,11 @@
 import express, { Request, Response } from 'express';
-import UserRepository from '@database/repositories/user';
-import { DatabaseError, RequestError } from '@models/errors';
+import UserRepository, { UserAction } from '@database/repositories/user';
+import { RequestError } from '@database/models/errors';
+import Crypto from '@utils/security/crypto';
+import UserModel from '@database/models/user';
 import Constants from '@constants';
-import User from '@models/user';
-import Auth from '@security/auth';
+import Auth from '@utils/security/auth';
+import Utils from '@utils/utils';
 
 const router = express.Router();
 
@@ -14,13 +16,28 @@ const router = express.Router();
  */
 async function login(request: Request, response: Response) {
     try {
-        const user = await User.from(request.body);
-        Auth.validateUserCredentials(user.Email, user.Password)
+        const clientId = request.header(Constants.HEADERS.CLIENT_ID);
+        const inputUser = await UserModel.from(request.body);
 
+        if (!clientId?.length) {
+            throw new Error(Constants.ERROR_MESSAGES.INVALID_CLIENT_ID);
+        }
+
+        // Validate that request body only has email and password fields
+        const fields = await UserRepository.getFieldDescribesFor(UserAction.AUTH);
+        Utils.validateFields(inputUser, fields);
+
+        // Validate password credentials
+        const storedUser: UserModel = await UserRepository.getUserForAuthentication(inputUser.Email!);
+        if (!Crypto.verifyPassword(inputUser.Password!, storedUser.Password!)) {
+            throw new Error(Constants.ERROR_MESSAGES.INVALID_USER_CREDENTIALS);
+        }
+
+        const jwt = await Auth.issueTokenForUser(storedUser, clientId);
 
         response.status(200).json({
             message: 'Success',
-            data: user
+            jwt
         });
     } catch (error) {
         console.error(error);

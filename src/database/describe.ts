@@ -14,10 +14,12 @@ export default class GlobalDescribe {
             return this.cache[table];
         }
         const fieldDescribes = await Database.query('DESCRIBE ??;', [table]);
-        return new TableDescribe(
+        const tableDescribe = new TableDescribe(
             table,
             fieldDescribes.map((fd) => new FieldDescribe(fd))
         );
+        this.cache[table] = tableDescribe;
+        return tableDescribe;
     }
 }
 
